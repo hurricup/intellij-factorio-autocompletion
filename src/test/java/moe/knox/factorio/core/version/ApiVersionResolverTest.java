@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ApiVersionResolverTest extends TestCase {
+public class ApiVersionResolverTest {
 
     private ApiVersionResolver apiVersionResolver;
 
@@ -21,6 +21,6 @@ public class ApiVersionResolverTest extends TestCase {
     void supportedVersions() throws IOException {
         var versions = apiVersionResolver.supportedVersions();
 
-        assertFalse("Versions cant be empty", versions.isEmpty());
+        assertFalse(versions.isEmpty(), "Versions cant be empty");
     }
 }
