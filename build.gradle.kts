@@ -141,7 +141,7 @@ tasks {
         maxHeapSize = "2048m"
         outputs.upToDateWhen { false }
 
-        systemProperty("junit.jupiter.execution.parallel.enabled", true)
+        systemProperty("junit.jupiter.execution.parallel.enabled", false)
         systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
 
         if (project.hasProperty("overwrite")) {
