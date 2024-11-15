@@ -3,6 +3,7 @@ package moe.knox.factorio.core.parser.api.writer;
 import moe.knox.factorio.core.parser.api.data.Parameter;
 import moe.knox.factorio.core.parser.api.data.ValueType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 final class AnnotationTypeResolver
@@ -31,8 +32,8 @@ final class AnnotationTypeResolver
 
     static String getType(ValueType type) {
         String result;
-        if (type instanceof ValueType.Simple simple) {
-            return simple.value();
+        if (type instanceof ValueType.Simple(String value)) {
+            return value;
         } else if (type instanceof ValueType.Union union) {
             result = presentUnion(union);
         } else if (type instanceof ValueType.Array array) {
@@ -135,26 +136,27 @@ final class AnnotationTypeResolver
 
     private static String presentTuple(ValueType.Tuple type) {
         // TODO how present tuple ??
-        StringBuilder stringBuilder = new StringBuilder();
-        boolean first = true;
-        for (ValueType.Tuple.TypeTupleParameter parameter : type.parameters()) {
-            if (!first) {
-                stringBuilder.append(',');
-            }
-            first = false;
-            stringBuilder
-                    .append(getType(parameter.type()))
-                    .append(" ")
-                    .append(parameter.name())
-            ;
+        List<String> result = new ArrayList<>();
+
+        var parameters = type.parameters();
+        var values = type.values();
+        if (parameters != null) {
+            parameters.forEach(parameter -> result.add(
+                    getType(parameter.type()) +
+                            " " +
+                            parameter.name()));
+        } else if (values != null) {
+            values.forEach(value -> result.add(getType(value)));
+        } else {
+            throw new RuntimeException("Tuple without values and properties content");
         }
 
-        return stringBuilder.toString();
+        return String.join(", ", result);
     }
 
     private static String presentType(ValueType.Type typeWithDescription) {
         // TODO how present type ??
-        return typeWithDescription.value();
+        return getType(typeWithDescription.value());
     }
 
     private static String presentLiteral(ValueType.Literal type) {

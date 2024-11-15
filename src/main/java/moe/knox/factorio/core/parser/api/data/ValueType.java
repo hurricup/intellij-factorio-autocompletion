@@ -5,7 +5,10 @@ import com.google.gson.annotations.SerializedName;
 import moe.knox.factorio.core.parser.api.data.desirealizer.ValueTypeJsonDeserializer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @JsonAdapter(ValueTypeJsonDeserializer.class)
 public interface ValueType extends Arrangeable {
@@ -22,6 +25,8 @@ public interface ValueType extends Arrangeable {
         put("LuaCustomTable", LuaCustomTable.class);
         put("table", Table.class);
         put("LuaLazyLoadedValue", LuaLazyLoadedValue.class);
+        put("LuaStruct", LuaStruct.class);
+        put("builtin", BuiltIn.class);
     }};
 
     private static Map<Class<? extends ValueType>, String> nativeNamesPerType() {
@@ -34,7 +39,7 @@ public interface ValueType extends Arrangeable {
         return reversedMap;
     }
 
-    default String getDescription() { return ""; };
+    default String getDescription() { return ""; }
 
     @Override
     default void arrangeElements() {}
@@ -45,19 +50,25 @@ public interface ValueType extends Arrangeable {
 
     record Simple(String value) implements ValueType {}
 
+    record BuiltIn() implements ValueType {
+    }
+
     record Array(ValueType value) implements ValueType {}
 
     record Literal(String value, String description) implements ValueType {
         public String getDescription() { return description; }
     }
 
-    record Type(String value, String description) implements ValueType {
+    record Type(ValueType value, String description) implements ValueType {
         public String getDescription() { return description; }
     }
 
     record Function(List<ValueType> parameters) implements ValueType {}
 
-    record Tuple(List<TypeTupleParameter> parameters) implements ValueType {
+    record LuaStruct(List<ValueType> attributes) implements ValueType {
+    }
+
+    record Tuple(List<TypeTupleParameter> parameters, List<ValueType> values) implements ValueType {
         public record TypeTupleParameter(String name, int order, String description, ValueType type, boolean optional) {
         }
     }
@@ -68,6 +79,8 @@ public interface ValueType extends Arrangeable {
                 int order,
                 String description,
                 ValueType type,
+                ValueType read_type,
+                ValueType write_type,
                 boolean optional,
                 boolean read,
                 boolean write

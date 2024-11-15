@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class ApiFileWriter
@@ -48,9 +49,11 @@ public final class ApiFileWriter
             } else if (concept.type() instanceof ValueType.Dictionary) {
                 writeConceptAsDictionary(concept);
             } else if (
-                concept.type() instanceof ValueType.Struct ||
-                concept.type() instanceof ValueType.Tuple ||
-                concept.type() instanceof ValueType.Array
+                    concept.type() instanceof ValueType.BuiltIn ||
+                            concept.type() instanceof ValueType.Struct ||
+                            concept.type() instanceof ValueType.LuaStruct ||
+                            concept.type() instanceof ValueType.Tuple ||
+                            concept.type() instanceof ValueType.Array
             ) {
                 // todo add realization
             } else {
@@ -193,7 +196,7 @@ public final class ApiFileWriter
         writeDescLine(output, attribute.examples);
         writeSee(output, attribute.seeAlso);
         writeReadWrite(output, attribute.read, attribute.write);
-        writeType(output, attribute.type);
+        writeType(output, attribute);
         writeValDef(output, attribute.name, className);
         output.append(NEW_LINE);
     }
@@ -299,19 +302,29 @@ public final class ApiFileWriter
     }
 
     private void writeType(Writer output, String type) throws IOException {
-        writeType(output, type, false);
+        writeType(output, Collections.singletonList(type), false);
     }
 
-    private void writeType(Writer output, ValueType type) throws IOException {
-        writeType(output, getType(type), false);
+    private void writeType(Writer output, Attribute attribute) throws IOException {
+        List<String> types = new ArrayList<>(3);
+        if (attribute.type != null) {
+            types.add(getType(attribute.type));
+        }
+        if (attribute.read_type != null) {
+            types.add(getType(attribute.read_type));
+        }
+        if (attribute.write_type != null) {
+            types.add(getType(attribute.write_type));
+        }
+        writeType(output, types, false);
     }
 
     private void writeType(Writer output, ValueType type, boolean optional) throws IOException {
-        writeType(output, getType(type), optional);
+        writeType(output, Collections.singletonList(getType(type)), optional);
     }
 
-    private void writeType(Writer output, String type, boolean optional) throws IOException {
-        output.append("---@type ").append(type);
+    private void writeType(Writer output, List<String> types, boolean optional) throws IOException {
+        output.append("---@type ").append(String.join("|", types));
         if (optional) {
             output.append("|nil");
         }
